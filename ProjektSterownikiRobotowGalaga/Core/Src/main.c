@@ -48,9 +48,15 @@
 
 /* USER CODE BEGIN PV */
 float pomiary_zyro[3];
-int os_x = 0;
-int os_y = 0;
+float os_x = 0;
+float os_y = 0;
 char napis[30];
+
+float kat_x = 0;
+float kat_y = 0;
+
+float statek_x = 120;
+float statek_y = 260;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -139,25 +145,48 @@ int main(void)
 	BSP_GYRO_GetXYZ(pomiary_zyro);
 
 	// Przeliczenie z milistopni na stopnie
-	os_x = (int)(pomiary_zyro[0] / 1000);
-	os_y = (int)(pomiary_zyro[1] / 1000);
+	os_x = pomiary_zyro[0] / 1000;
+	os_y = pomiary_zyro[1] / 1000;
 
-	// Wyzerowanie malych wartosci, zeby nie skakalo gdy plytka lezy
-	if (os_x > -6 && os_x < 6) {
+	// Wyzerowanie malych wartosci
+	if (os_x > -6.0 && os_x < 6.0) {
 	  os_x = 0;
 	}
-	if (os_y > -6 && os_y < 6) {
+	if (os_y > -6.0 && os_y < 6.0) {
 	  os_y = 0;
 	}
 
+	// Obliczanie kata wychylenia plytki HAL_Delay(50ms) czyli 1/20 sekundy
+	kat_x = kat_x + (os_x / 20.0);
+	kat_y = kat_y + (os_y / 20.0);
+
+	if (kat_y > 5.0 || kat_y < -5.0) {
+		statek_x = statek_x + (kat_y / 7.0);
+	}
+	if (kat_x > 5.0 || kat_x < -5.0) {
+		statek_y = statek_y + (kat_x / 7.0);
+	}
+
 	// Wyswietlenie na ekranie
-	sprintf(napis, "X: %d    ", os_x);
+	sprintf(napis, "zyro X: %.1f    ", os_x);
 	BSP_LCD_DisplayStringAtLine(1, (uint8_t*)napis);
 
-	sprintf(napis, "Y: %d    ", os_y);
+	sprintf(napis, "zyro Y: %.1f    ", os_y);
 	BSP_LCD_DisplayStringAtLine(2, (uint8_t*)napis);
 
-	HAL_Delay(100);
+	sprintf(napis, "kat X: %.1f    ", kat_x);
+	BSP_LCD_DisplayStringAtLine(3, (uint8_t*)napis);
+
+	sprintf(napis, "kat Y: %.1f    ", kat_y);
+	BSP_LCD_DisplayStringAtLine(4, (uint8_t*)napis);
+
+	sprintf(napis, "Statek X:%.1f    ", statek_x);
+	BSP_LCD_DisplayStringAtLine(6, (uint8_t*)napis);
+
+	sprintf(napis, "Statek Y:%.1f    ", statek_y);
+	BSP_LCD_DisplayStringAtLine(7, (uint8_t*)napis);
+
+	HAL_Delay(50);
 
     }
 
