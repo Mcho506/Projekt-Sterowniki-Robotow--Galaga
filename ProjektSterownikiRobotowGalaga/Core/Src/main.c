@@ -22,6 +22,8 @@
 /* USER CODE BEGIN Includes */
 #include "stm32f429i_discovery_lcd.h"
 #include "stm32f429i_discovery_sdram.h"
+#include "stm32f429i_discovery_gyroscope.h"
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -45,7 +47,10 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+float pomiary_zyro[3];
+int os_x = 0;
+int os_y = 0;
+char napis[30];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -121,10 +126,7 @@ int main(void)
   BSP_LCD_SetBackColor(LCD_COLOR_BLACK);
   BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
 
-  BSP_LCD_DisplayStringAtLine(1, (uint8_t*)"Tottenham");
-  BSP_LCD_DisplayStringAtLine(2, (uint8_t*)" > ");
-  BSP_LCD_DisplayStringAtLine(3, (uint8_t*)"Chelsea");
-
+  BSP_GYRO_Init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -134,8 +136,29 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	BSP_GYRO_GetXYZ(pomiary_zyro);
 
-      HAL_Delay(1000);
+	// Przeliczenie z milistopni na stopnie
+	os_x = (int)(pomiary_zyro[0] / 1000);
+	os_y = (int)(pomiary_zyro[1] / 1000);
+
+	// Wyzerowanie malych wartosci, zeby nie skakalo gdy plytka lezy
+	if (os_x > -6 && os_x < 6) {
+	  os_x = 0;
+	}
+	if (os_y > -6 && os_y < 6) {
+	  os_y = 0;
+	}
+
+	// Wyswietlenie na ekranie
+	sprintf(napis, "X: %d    ", os_x);
+	BSP_LCD_DisplayStringAtLine(1, (uint8_t*)napis);
+
+	sprintf(napis, "Y: %d    ", os_y);
+	BSP_LCD_DisplayStringAtLine(2, (uint8_t*)napis);
+
+	HAL_Delay(100);
+
     }
 
   /* USER CODE END 3 */
